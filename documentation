@@ -1,5 +1,5 @@
 installing box from: "debian/bullseye64"
-with specific version of: "11.20221219.1"
+with the latest version
 
 provisioning:
     update the machine
