@@ -1,0 +1,28 @@
+installing box from: "debian/bullseye64"
+with specific version of: "11.20221219.1"
+
+provisioning:
+    update the machine
+    installing packages:
+        ca-certificates
+        curl
+        gnupg
+        lsb-release
+    adding docker keyring
+    adding docker repository
+    update the machine
+    installing packages:
+        docker-ce 
+        docker-ce-cli 
+        containerd.io 
+        docker-compose
+        docker-compose-plugin
+        nginx
+        ufw
+    creating gitea directory
+    creating docker-compose.yml with gitea config
+    allow nginx in firewall
+    creating available sites file config, linking to sites enabled
+    server name "semlangitea.local"
+    restarting nginx
+    starting up docker-compose
