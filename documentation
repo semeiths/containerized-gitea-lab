@@ -1,5 +1,7 @@
 installing box from: "debian/bullseye64"
-with the latest version
+version: latest
+memory: 1024
+cpu: 2
 
 provisioning:
     update the machine
@@ -20,9 +22,8 @@ provisioning:
         nginx
         ufw
     creating gitea directory
-    creating docker-compose.yml with gitea config
-    allow nginx in firewall
+    creating docker-compose.yml with gitea/database config
+    allow nginx,ssh in firewall
     creating available sites file config, linking to sites enabled
-    server name "semlangitea.local"
-    restarting nginx
-    starting up docker-compose
+    starting nginx
+    starting up docker-compose in the background

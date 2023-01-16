@@ -1,5 +1,9 @@
 Vagrant.configure("2") do |config|
   config.vm.box = "debian/bullseye64"
+  config.vm.provider "libvirt" do |v|
+    v.memory = 1024
+    v.cpus = 2
+  end
   config.vm.provision "shell", inline: <<-SHELL
     echo "Provisioning machine..."
     apt update
@@ -10,7 +14,8 @@ Vagrant.configure("2") do |config|
     apt update
     apt install -y docker-ce docker-ce-cli containerd.io docker-compose docker-compose-plugin nginx ufw
     mkdir /home/vagrant/gitea
-    touch /home/vagrant/gitea/docker-compose.yml
+    cd /home/vagrant/gitea
+    touch docker-compose.yml
     echo 'version: "3"
 
 networks:
@@ -24,6 +29,11 @@ services:
     environment:
       - USER_UID=1
       - USER_GID=1
+      - GITEA__database__DB_TYPE=mysql
+      - GITEA__database__HOST=db:3306
+      - GITEA__database__NAME=gitea
+      - GITEA__database__USER=gitea
+      - GITEA__database__PASSWD=gitea
     restart: always
     networks:
       - gitea
@@ -34,8 +44,24 @@ services:
       - /etc/localtime:/etc/localtime:ro
     ports:
       - "127.0.0.1:3000:3000"
-      - "127.0.0.1:2222:22"' > /home/vagrant/gitea/docker-compose.yml
+      - "127.0.0.1:2222:22"
+    depends_on:
+      - db
+  db:
+    image: mysql:8
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=gitea
+      - MYSQL_USER=gitea
+      - MYSQL_PASSWORD=gitea
+      - MYSQL_DATABASE=gitea
+    networks:
+      - gitea
+    volumes:
+      - ./mysql:/var/lib/mysql' > docker-compose.yml
     ufw allow "Nginx Full"
+    ufw allow "ssh"
+    ufw --force enable
     touch /etc/nginx/sites-available/gitea
     echo 'server {
       # Listen for requests on your domain/IP address.
@@ -57,8 +83,7 @@ location / {
     ln -s /etc/nginx/sites-available/gitea /etc/nginx/sites-enabled/gitea
     nginx -t
     systemctl restart nginx
-    cd /home/vagrant/gitea
-    docker-compose up -d
+    docker-compose -p gitea up -d
     echo "Machine successfully provisioned at $(date)!"
     echo "Tip: Make sure to add '$(ip a show eth0 | grep 'inet ' | awk '{print $2}' | cut -f1 -d '/')   semlangitea.local' to your /etc/hosts file to navigate to the machine via web browser."
   SHELL
