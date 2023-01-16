@@ -4,6 +4,14 @@ Gitea with a MySQL database containerised in docker. Using nginx as reverse prox
 
 All running in a debian 11 machine configured in Vagrant.
 
+## Default Configuration
+
+Database username: gitea
+
+Database password: gitea
+
+Domain: http://semlangitea.local
+
 ## File list
 
 .gitignore
@@ -14,14 +22,6 @@ README.md
 
 VagrantFile
 
-## Default Configuration
-
-Database username: gitea
-
-Database password: gitea
-
-Domain: http://semlangitea.local
-
-### Author
+## Author
 
 https://github.com/semeiths
