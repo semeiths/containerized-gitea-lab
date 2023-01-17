@@ -1,6 +1,6 @@
 # Description
 
-Gitea with a MySQL database containerised in docker. Using nginx as reverse proxy.
+Gitea with a MySQL database containerised in docker, multi-staging. Using nginx as reverse proxy.
 
 All running in a debian 11 machine configured in Vagrant.
 
