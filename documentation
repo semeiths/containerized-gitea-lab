@@ -1,5 +1,6 @@
 installing box from: "debian/bullseye64"
 version: latest
+syncing folder with gitea config
 memory: 1024
 cpu: 2
 
@@ -21,9 +22,15 @@ provisioning:
         docker-compose-plugin
         nginx
         ufw
-    creating gitea directory
+    creating gitea, mysql directory
+    creating Dockerfile 
+        building gitea binaries in golang
+        copying binaries to alpine
+    building custom image semlan/gitea:v1 
     creating docker-compose.yml with gitea/database config
     allow nginx,ssh in firewall
     creating available sites file config, linking to sites enabled
     starting nginx
     starting up docker-compose in the background
+    removing uncessary images
+    

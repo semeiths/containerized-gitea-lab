@@ -14,6 +14,10 @@ Domain: http://semlangitea.local
 
 ## File list
 
+giteaConfig/
+
+    app.ini
+
 .gitignore
 
 documentation

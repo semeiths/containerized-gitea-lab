@@ -1,7 +1,8 @@
 Vagrant.configure("2") do |config|
   config.vm.box = "debian/bullseye64"
+  config.vm.synced_folder "giteaConfig", "/home/vagrant/gitea/gitea/custom/conf", type: "nfs", nfs_version: 4
   config.vm.provider "libvirt" do |v|
-    v.memory = 1024
+    v.memory = 4096
     v.cpus = 2
   end
   config.vm.provision "shell", inline: <<-SHELL
@@ -13,22 +14,50 @@ Vagrant.configure("2") do |config|
     echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian/ $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
     apt update
     apt install -y docker-ce docker-ce-cli containerd.io docker-compose docker-compose-plugin nginx ufw
-    mkdir /home/vagrant/gitea
+    mkdir -p /home/vagrant/gitea/{gitea,mysql}
     cd /home/vagrant/gitea
+    touch Dockerfile
+    echo '# Build stage for Gitea
+FROM golang:1.19-alpine3.17 AS build
+
+RUN apk add nodejs npm git make go-bindata g++ && \
+    mkdir -p /go/src/gitea && \
+    cd /go/src/gitea && \
+    git clone https://github.com/go-gitea/gitea && \
+    cd gitea && \
+    git branch -a && \
+    git checkout v1.18.0 && \
+    TAGS="bindata" make build
+
+# Deployment stage
+FROM alpine:latest AS final
+
+# Copy Gitea binary
+COPY --from=build /go/src/gitea/gitea/gitea /usr/local/bin/gitea
+
+RUN apk add git && \
+    adduser -D gitea -u 1000
+
+USER gitea
+
+CMD GITEA_WORK_DIR=/data gitea web
+
+EXPOSE 3306 3000 22
+
+    ' > Dockerfile
+    docker build --target final -t semlan/gitea:v1 .
     touch docker-compose.yml
     echo 'version: "3"
-
 networks:
   gitea:
     external: false
-
 services:
   server:
-    image: gitea/gitea:1.16.5
+    image: semlan/gitea:v1
     container_name: gitea
     environment:
-      - USER_UID=1
-      - USER_GID=1
+      - USER_UID=1000
+      - USER_GID=1000
       - GITEA__database__DB_TYPE=mysql
       - GITEA__database__HOST=db:3306
       - GITEA__database__NAME=gitea
@@ -59,6 +88,7 @@ services:
       - gitea
     volumes:
       - ./mysql:/var/lib/mysql' > docker-compose.yml
+    chown -hR 1000:1000 gitea mysql
     ufw allow "Nginx Full"
     ufw allow "ssh"
     ufw --force enable
@@ -84,6 +114,7 @@ location / {
     nginx -t
     systemctl restart nginx
     docker-compose -p gitea up -d
+    docker image prune -a -f
     echo "Machine successfully provisioned at $(date)!"
     echo "Tip: Make sure to add '$(ip a show eth0 | grep 'inet ' | awk '{print $2}' | cut -f1 -d '/')   semlangitea.local' to your /etc/hosts file to navigate to the machine via web browser."
   SHELL
