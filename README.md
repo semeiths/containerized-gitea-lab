@@ -14,17 +14,15 @@ Domain: http://semlangitea.local
 
 ## File list
 
-giteaConfig/
+    giteaConfig/app.ini
 
-    app.ini
+    .gitignore
 
-.gitignore
+    documentation
 
-documentation
+    README.md
 
-README.md
-
-VagrantFile
+    VagrantFile
 
 ## Author
 
